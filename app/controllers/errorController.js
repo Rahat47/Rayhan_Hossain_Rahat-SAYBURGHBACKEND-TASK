@@ -15,6 +15,7 @@ const handleDuplicateValueDB = (err) => {
     return new AppError(message, 422);
 };
 
+// sends error with details to the client when in development mode
 export const sendDevError = (err, res) => {
     console.log(err);
 
@@ -26,6 +27,7 @@ export const sendDevError = (err, res) => {
     });
 };
 
+// sends error with limited or modified info to the client when in production mode
 export const sendProdError = (err, res) => {
     let error = err;
 
@@ -33,6 +35,10 @@ export const sendProdError = (err, res) => {
 
     if (error.code === 11000) {
         error = handleDuplicateValueDB(error);
+    }
+
+    if (error.name === 'JsonWebTokenError') {
+        error = new AppError('Invalid token', 401);
     }
 
     // Operational , Trusted eror that we want to send to client
@@ -43,7 +49,7 @@ export const sendProdError = (err, res) => {
         });
     } else {
         // Programming or other errors that we do not want to send to client
-        // console.error('Error: ', err);
+        console.error('Error: ', err);
 
         res.status(500).json({
             status: 'error',
