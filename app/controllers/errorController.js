@@ -15,6 +15,16 @@ const handleDuplicateValueDB = (err) => {
     return new AppError(message, 422);
 };
 
+const handleValidationError = (err) => {
+    let message = 'Invalid input data';
+
+    Object.keys(err.errors).forEach((key) => {
+        message += `\n${err.errors[key].message}`;
+    });
+
+    return new AppError(message, 422);
+};
+
 // sends error with details to the client when in development mode
 export const sendDevError = (err, res) => {
     console.log(err);
@@ -39,6 +49,16 @@ export const sendProdError = (err, res) => {
 
     if (error.name === 'JsonWebTokenError') {
         error = new AppError('Invalid token', 401);
+    }
+
+    // handle mongodb validation errors
+    if (error.name === 'ValidationError') {
+        error = handleValidationError(error);
+    }
+
+    // handle jsonwebtoken expired error
+    if (error.message === 'jwt expired') {
+        error = new AppError('Token expired, Please log in again', 401);
     }
 
     // Operational , Trusted eror that we want to send to client

@@ -12,7 +12,7 @@ const getJwtToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, {
 const sendTokenResponse = (token, data, statusCode, res) => {
     const cookieOptions = {
         expires: new Date(
-            Date.now() + (process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000),
+            Date.now() + (Number(process.env.JWT_COOKIE_EXPIRES_IN) * 24 * 60),
         ),
         httpOnly: true,
     };

@@ -1,9 +1,9 @@
 /* eslint-disable no-console */
 import mongoose from 'mongoose';
-import PrettyError from 'pretty-error';
+// import PrettyError from 'pretty-error';
 import app from './app/app.js';
 
-const pe = new PrettyError();
+// const pe = new PrettyError();
 // pe.start();
 
 process.on('uncaughtException', (err) => {
