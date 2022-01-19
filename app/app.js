@@ -4,6 +4,7 @@ import cors from 'cors';
 import { globalErrorMiddleware } from './middlewares/globalErrorMiddleware.js';
 import userRoutes from './routes/userRoutes.js';
 import blogRoutes from './routes/blogRoutes.js';
+import commentRoutes from './routes/commentRoutes.js';
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use('/api/users', userRoutes);
 app.use('/api/blogs', blogRoutes);
+app.use('/api/comments', commentRoutes);
 
 app.all('*', (req, res) => {
     res.status(404).json({

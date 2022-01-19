@@ -42,7 +42,9 @@ export const getBlog = asyncHandler(async (req, res, next) => {
         return next(new AppError('No slug found', 404));
     }
 
-    const blog = await Blog.findOne({ slug }).populate('createdBy', 'firstName lastName email _id');
+    const blog = await Blog.findOne({ slug })
+        .populate('createdBy', 'firstName lastName email _id')
+        .populate('comments', 'content createdBy createdAt');
 
     if (!blog) {
         return next(new AppError('No blog found', 404));

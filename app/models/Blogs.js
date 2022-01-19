@@ -26,6 +26,16 @@ const blogSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
     },
+}, {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+});
+
+blogSchema.virtual('comments', {
+    ref: 'Comment',
+    localField: '_id',
+    foreignField: 'blog',
+
 });
 
 blogSchema.pre('save', function (next) {
@@ -53,12 +63,6 @@ blogSchema.pre('findOneAndUpdate', function (next) {
     this.findOneAndUpdate({}, { $set: { slug: slugify(this.getUpdate().title, { lower: true }) } });
     next();
 });
-
-// if a blog is deleted, the associated comments should be deleted
-// blogSchema.pre('remove', async function (next) {
-//     await this.model('Comment').deleteMany({ blog: this._id });
-//     next();
-// });
 
 const Blog = mongoose.model('Blog', blogSchema);
 
