@@ -154,3 +154,65 @@ export const protectRoute = asyncHandler(async (req, res, next) => {
     req.user = currentUser;
     next();
 });
+
+export const refreshTheToken = asyncHandler(async (req, res, next) => {
+    let token;
+
+    if (!req.body.token) token = req.cookies.refreshToken;
+    else token = req.body.token;
+
+    const refreshToken = await RefreshToken.findOne({ token });
+
+    if (!refreshToken || refreshToken.revoked || !refreshToken.isActive) {
+        return next(new AppError('Invalid refresh token', 401));
+    }
+
+    const user = await User.findById(refreshToken.user);
+
+    if (!user) {
+        return next(new AppError('Invalid refresh token', 401));
+    }
+
+    const newToken = getJwtToken(user);
+
+    sendTokenResponse(newToken, user, 200, res, req);
+});
+
+export const revokeToken = asyncHandler(async (req, res, next) => {
+    const refreshToken = await RefreshToken.findOne({ token: req.body.token });
+
+    if (!refreshToken) {
+        return next(new AppError('Invalid refresh token', 401));
+    }
+
+    // there shoule be an authorization step here, so that only admins can revoke tokens
+    // but as this app does not have roles or permissions, I am not implementing it for now
+
+    refreshToken.revoked = true;
+    refreshToken.revokedByIp = req.clientIp;
+
+    await refreshToken.save();
+
+    res.status(200).json({
+        success: true,
+        message: 'Refresh token revoked',
+    });
+});
+
+export const getRefreshTokensForUser = asyncHandler(async (req, res, next) => {
+    const refreshTokens = await RefreshToken.find({ user: req.params.id });
+
+    res.status(200).json({
+        success: true,
+        data: refreshTokens,
+    });
+});
+
+export const getUsers = asyncHandler(async (req, res, next) => {
+    const users = await User.find();
+
+    res.status(200).json({
+        success: true,
+        data: users,
+    });
+});
