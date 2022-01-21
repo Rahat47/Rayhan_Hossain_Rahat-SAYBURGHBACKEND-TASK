@@ -2,6 +2,7 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 import Blog from '../models/Blogs.js';
 import APIFeatures from '../utils/APIFeatures.js';
 import AppError from '../utils/AppError.js';
+import Comment from '../models/Comments.js';
 
 export const createBlog = asyncHandler(async (req, res, next) => {
     const { title, content, tags } = req.body;
@@ -104,6 +105,9 @@ export const deleteBlog = asyncHandler(async (req, res, next) => {
     }
 
     await Blog.findOneAndDelete({ slug });
+
+    // delete comments associated with blog
+    await Comment.deleteMany({ blog: blog._id });
 
     res.status(204).json({
         success: true,
