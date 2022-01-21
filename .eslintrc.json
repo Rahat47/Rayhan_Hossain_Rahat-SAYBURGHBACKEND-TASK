@@ -11,7 +11,7 @@
     "rules": {
         "linebreak-style": "off",
         "indent": "off",
-        "no-unused-vars": "warn",
+        "no-unused-vars": "off",
         "import/prefer-default-export": "off",
         "no-param-reassign": "off",
         "no-underscore-dangle": "off",
