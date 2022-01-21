@@ -1,6 +1,8 @@
 import express from 'express';
 import morgan from 'morgan';
 import cors from 'cors';
+import requestIp from 'request-ip';
+import cookieParser from 'cookie-parser';
 import { globalErrorMiddleware } from './middlewares/globalErrorMiddleware.js';
 import userRoutes from './routes/userRoutes.js';
 import blogRoutes from './routes/blogRoutes.js';
@@ -13,6 +15,8 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 app.use(cors());
+app.use(requestIp.mw());
+app.use(cookieParser());
 
 // parse requests of content-type - application/json
 app.use(express.json());

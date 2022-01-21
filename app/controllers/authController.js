@@ -4,12 +4,45 @@ import jwt from 'jsonwebtoken';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import AppError from '../utils/AppError.js';
 import User from '../models/User.js';
+import RefreshToken from '../models/RefreshToken.js';
+import { randomToken } from '../utils/randomToken.js';
 
 const getJwtToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
 });
 
-const sendTokenResponse = (token, data, statusCode, res) => {
+const revokeRefreshToken = async (token, ipAddress) => {
+    const refreshToken = await RefreshToken.findOne({ token });
+
+    if (!refreshToken) {
+        return;
+    }
+
+    refreshToken.revoked = true;
+    refreshToken.revokedByIp = ipAddress;
+
+    await refreshToken.save();
+};
+
+const createRefreshToken = async (user, ipAddress, cookies) => {
+    if (cookies && cookies.refreshToken) {
+        // if refresh token is already present in the cookies, revoke it
+        await revokeRefreshToken(cookies.refreshToken, ipAddress);
+    }
+
+    const refreshToken = RefreshToken({
+        user: user._id,
+        token: randomToken(),
+        expiresAt: new Date(Date.now() + (Number(process.env.JWT_COOKIE_EXPIRES_IN) * 24 * 60)),
+        createdByIp: ipAddress,
+    });
+
+    await refreshToken.save();
+
+    return refreshToken;
+};
+
+const sendTokenResponse = async (token, data, statusCode, res, req) => {
     const cookieOptions = {
         expires: new Date(
             Date.now() + (Number(process.env.JWT_COOKIE_EXPIRES_IN) * 24 * 60),
@@ -20,13 +53,15 @@ const sendTokenResponse = (token, data, statusCode, res) => {
     if (process.env.NODE_ENV === 'production') {
         cookieOptions.secure = true;
     }
+    const refreshToken = await createRefreshToken(data, req.clientIp, req.cookies);
 
-    res.cookie('jwt', token, cookieOptions);
+    res.cookie('refreshToken', refreshToken.token, cookieOptions);
 
     res.status(statusCode).json({
         success: true,
         token,
         data,
+        refreshToken: refreshToken.token,
     });
 };
 
@@ -48,7 +83,7 @@ export const signup = asyncHandler(async (req, res, next) => {
 
     const token = getJwtToken(user._id);
 
-    sendTokenResponse(token, user, 201, res);
+    sendTokenResponse(token, user, 201, res, req);
 });
 
 export const login = asyncHandler(async (req, res, next) => {
@@ -70,7 +105,7 @@ export const login = asyncHandler(async (req, res, next) => {
 
     const token = getJwtToken(user);
 
-    sendTokenResponse(token, user, 200, res);
+    sendTokenResponse(token, user, 200, res, req);
 });
 
 export const updatePassword = asyncHandler(async (req, res, next) => {
