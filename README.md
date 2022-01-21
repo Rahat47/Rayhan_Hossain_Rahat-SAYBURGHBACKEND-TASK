@@ -36,6 +36,22 @@ Develop a simple blogging application using Express.js and MongoDB with followin
 
 **Server:** Node, Express, Mongoose, MongoDB, argon2, JWT
 
+## Environment Variables
+
+To run this project, you will need to add the following environment variables to your .env file
+
+`DB_PASSWORD`
+
+`DB_USER`
+
+`DB_NAME`
+
+`JWT_EXPIRES_IN`
+
+`JWT_SECRET`
+
+`JWT_COOKIE_EXPIRES_IN`
+
 ## Run Locally
 
 Clone the project
